@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d9817ab7fec6c34a85529d9e5678307, type: 3}
   m_Name: Player Stats
   m_EditorClassIdentifier: 
-  forwardAcceleration: 15
+  forwardAcceleration: 10
   backwardAcceleration: 5
+  rotationSpeed: 0.2
   maxSpeed: 20
   groundFriction: 0.002
