@@ -14,6 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   forwardAcceleration: 10
   backwardAcceleration: 5
-  rotationSpeed: 0.2
+  turnSpeed: 0.2
+  handbreakAdditionalTurnSpeed: 0.8
   maxSpeed: 20
+  breakStrenght: 3
+  handbreakStrenght: 1.5
   groundFriction: 0.002

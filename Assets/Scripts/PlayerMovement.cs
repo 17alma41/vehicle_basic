@@ -9,7 +9,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] ParticleSystem accelerationParticles;
     [SerializeField] ParticleSystem rightParticles;
     [SerializeField] ParticleSystem leftParticles;
+    [SerializeField] TrailRenderer skidMarkLeft;
+    [SerializeField] TrailRenderer skidMarkRight;
     bool particlesActive = false;
+
 
     Vector2 inputMovement = Vector2.zero;
 
@@ -17,7 +20,9 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>(); 
+        rb = GetComponent<Rigidbody>();
+        skidMarkLeft.emitting = false;
+        skidMarkRight.emitting = false;
     }
 
     void Update()
@@ -46,8 +51,10 @@ public class PlayerMovement : MonoBehaviour
             inputMovement.x += 1;
         }
 
-        if (Input.GetKey(KeyCode.S))
+        if (Input.GetKey(KeyCode.S)) //Normal break
             inputMovement.x -= 1;
+
+        
 
         if (Input.GetKey(KeyCode.A))
             inputMovement.y -= 1;
@@ -83,10 +90,7 @@ public class PlayerMovement : MonoBehaviour
             }
 
             //Fricción en el suelo
-            rb.velocity = new Vector3(
-                rb.velocity.x / (1 + stats.groundFriction * Time.fixedDeltaTime),
-                rb.velocity.y,
-                rb.velocity.z / (1 + stats.groundFriction * Time.fixedDeltaTime));
+            ReduceVelocity(stats.groundFriction);
         }
 
         if(inputMovement.x < 0)
@@ -99,21 +103,35 @@ public class PlayerMovement : MonoBehaviour
             else
             {
                 //Frenada en el suelo
-                rb.velocity = new Vector3(
-                   rb.velocity.x / (1 + stats.powerBreak * Time.fixedDeltaTime),
-                   rb.velocity.y,
-                   rb.velocity.z / (1 + stats.powerBreak * Time.fixedDeltaTime)
-                   );
+                ReduceVelocity(stats.breakStrenght);
             }
 
         }
 
+        //Handbreak
+        if (Input.GetKey(KeyCode.Space)){
+
+            //Frenada en el suelo
+            ReduceVelocity(stats.handbreakStrenght);
+
+            if (inputMovement.y != 0)
+                rb.angularVelocity += new Vector3(0, stats.handbreakAdditionalTurnSpeed * inputMovement.y,0);
+
+            skidMarkLeft.emitting = true;
+            skidMarkRight.emitting = true;
+        }
+        else
+        {
+            skidMarkLeft.emitting = false;
+            skidMarkRight.emitting = false;
+        }
+            
 
         if (inputMovement.y != 0)
         {
             rb.angularVelocity += new Vector3(
               0,
-              stats.rotationSpeed * inputMovement.y,
+              stats.turnSpeed * inputMovement.y,
               0
           );
         }
@@ -124,5 +142,14 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.velocity = rb.velocity.normalized * stats.maxSpeed;
         }
+    }
+
+    void ReduceVelocity(float strenght)
+    {
+        rb.velocity = new Vector3(
+              rb.velocity.x / (1 + strenght * Time.fixedDeltaTime),
+              rb.velocity.y,
+              rb.velocity.z / (1 + strenght * Time.fixedDeltaTime)
+              );
     }
 }
