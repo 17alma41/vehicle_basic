@@ -23,7 +23,7 @@ public class CameraScript : MonoBehaviour
         transform.position = target.position;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         transform.position = Vector3.SmoothDamp(
             transform.localPosition,

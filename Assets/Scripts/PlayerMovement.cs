@@ -12,11 +12,21 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] TrailRenderer skidMarkLeft;
     [SerializeField] TrailRenderer skidMarkRight;
     bool particlesActive = false;
+    bool handbreakActive = false;
+    [SerializeField] float bouncingForce;
+    bool isBouncing = false;
 
 
     Vector2 inputMovement = Vector2.zero;
 
     Rigidbody rb;
+    Controls controls;
+
+    private void Awake()
+    {
+        controls = new Controls();
+        controls.Enable();
+    }
 
     void Start()
     {
@@ -40,6 +50,8 @@ public class PlayerMovement : MonoBehaviour
     {
         inputMovement = Vector2.zero;
 
+        inputMovement.x = controls.Movement.AccelerationOrBreak.ReadValue<float>();
+
         if (Input.GetKey(KeyCode.W))
         {
             if (!particlesActive) //Activar particulas si no estan activas 
@@ -48,19 +60,18 @@ public class PlayerMovement : MonoBehaviour
                 particlesActive = true;
             }
            
-            inputMovement.x += 1;
+           //inputMovement.x += 1;
         }
 
-        if (Input.GetKey(KeyCode.S)) //Normal break
-            inputMovement.x -= 1;
+        //if (Input.GetKey(KeyCode.S)) //Normal break
+        //    inputMovement.x -= 1;
 
-        
+        inputMovement.y = controls.Movement.Turn.ReadValue<float>();
 
-        if (Input.GetKey(KeyCode.A))
-            inputMovement.y -= 1;
-
-        if (Input.GetKey(KeyCode.D))
-            inputMovement.y += 1;
+        //if (Input.GetKey(KeyCode.A))
+        //    inputMovement.y -= 1;
+        //if (Input.GetKey(KeyCode.D))
+        //    inputMovement.y += 1;
 
         if (Input.GetKeyDown(KeyCode.A))
             leftParticles.Play();
@@ -72,6 +83,8 @@ public class PlayerMovement : MonoBehaviour
             leftParticles.Stop();
         }
 
+        if (controls.Movement.Handbreak.IsPressed())
+            handbreakActive = true;
     }
 
     void Physical()
@@ -80,6 +93,12 @@ public class PlayerMovement : MonoBehaviour
         {
             //Aceleración
             rb.velocity += transform.forward * stats.forwardAcceleration * Time.fixedDeltaTime;
+
+            //Máxima velocidad del personaje en el suelo
+            if (rb.velocity.magnitude > stats.maxSpeed)
+            {
+                rb.velocity = rb.velocity.normalized * stats.maxSpeed;
+            }
         }
         else
         {
@@ -109,7 +128,8 @@ public class PlayerMovement : MonoBehaviour
         }
 
         //Handbreak
-        if (Input.GetKey(KeyCode.Space)){
+        if (handbreakActive)
+        {
 
             //Frenada en el suelo
             ReduceVelocity(stats.handbreakStrenght);
@@ -126,6 +146,7 @@ public class PlayerMovement : MonoBehaviour
             skidMarkRight.emitting = false;
         }
             
+        handbreakActive = false;
 
         if (inputMovement.y != 0)
         {
@@ -137,11 +158,6 @@ public class PlayerMovement : MonoBehaviour
         }
 
 
-        //Máxima velocidad del personaje en el suelo
-        if (rb.velocity.magnitude > stats.maxSpeed)
-        {
-            rb.velocity = rb.velocity.normalized * stats.maxSpeed;
-        }
     }
 
     void ReduceVelocity(float strenght)
@@ -151,5 +167,27 @@ public class PlayerMovement : MonoBehaviour
               rb.velocity.y,
               rb.velocity.z / (1 + strenght * Time.fixedDeltaTime)
               );
+    }
+
+    void Bounce()
+    {
+        rb.velocity = -rb.velocity.normalized * bouncingForce;
+        isBouncing = true;
+
+        Invoke("UnPause", 0.05f);
+    }
+
+    void UnPause()
+    {
+        isBouncing = false;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Obstacule"))
+        {
+            Bounce();
+        }
+
     }
 }
