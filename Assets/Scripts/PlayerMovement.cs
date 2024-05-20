@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.SceneTemplate;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -15,6 +16,8 @@ public class PlayerMovement : MonoBehaviour
     bool handbreakActive = false;
     [SerializeField] float bouncingForce;
     bool isBouncing = false;
+
+    [SerializeField] Canvas uiGameOver;
 
 
     Vector2 inputMovement = Vector2.zero;
@@ -30,6 +33,8 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
+        uiGameOver.enabled = false;
+
         rb = GetComponent<Rigidbody>();
         skidMarkLeft.emitting = false;
         skidMarkRight.emitting = false;
@@ -189,5 +194,19 @@ public class PlayerMovement : MonoBehaviour
             Bounce();
         }
 
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("Finish"))
+        {
+            uiGameOver.enabled = true;
+            Invoke(nameof(LoadNewScene), 5f);
+        }
+    }
+
+    void LoadNewScene()
+    {
+        SceneManager.LoadScene("SampleScene");
     }
 }
