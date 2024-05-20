@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.SceneTemplate;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -57,35 +56,35 @@ public class PlayerMovement : MonoBehaviour
 
         inputMovement.x = controls.Movement.AccelerationOrBreak.ReadValue<float>();
 
-        if (Input.GetKey(KeyCode.W))
-        {
-            if (!particlesActive) //Activar particulas si no estan activas 
-            {
-                accelerationParticles.Play();
-                particlesActive = true;
-            }
-           
-           //inputMovement.x += 1;
-        }
-
         //if (Input.GetKey(KeyCode.S)) //Normal break
         //    inputMovement.x -= 1;
 
         inputMovement.y = controls.Movement.Turn.ReadValue<float>();
 
-        //if (Input.GetKey(KeyCode.A))
-        //    inputMovement.y -= 1;
-        //if (Input.GetKey(KeyCode.D))
-        //    inputMovement.y += 1;
-
-        if (Input.GetKeyDown(KeyCode.A))
-            leftParticles.Play();
-        if (Input.GetKeyDown(KeyCode.D))
-            rightParticles.Play();
-        else if (Input.GetKeyUp(KeyCode.D) || Input.GetKeyUp(KeyCode.A))
+        if (inputMovement.y < 0) //Girando a la izquierda
         {
-            rightParticles.Stop();
-            leftParticles.Stop();
+            if (!leftParticles.isPlaying)
+            {
+                leftParticles.Play();
+            }
+        }
+        else if (inputMovement.y > 0) //Girando a la derecha
+        {
+            if (!rightParticles.isPlaying)
+            {
+                rightParticles.Play();
+            }
+        }
+        else //No girando
+        {
+            if (leftParticles.isPlaying)
+            {
+                leftParticles.Stop();
+            }
+            if (rightParticles.isPlaying)
+            {
+                rightParticles.Stop();
+            }
         }
 
         if (controls.Movement.Handbreak.IsPressed())
@@ -98,6 +97,12 @@ public class PlayerMovement : MonoBehaviour
         {
             //Aceleración
             rb.velocity += transform.forward * stats.forwardAcceleration * Time.fixedDeltaTime;
+
+            if (!particlesActive) //Activar particulas si no estan activas 
+            {
+                accelerationParticles.Play();
+                particlesActive = true;
+            }
 
             //Máxima velocidad del personaje en el suelo
             if (rb.velocity.magnitude > stats.maxSpeed)
